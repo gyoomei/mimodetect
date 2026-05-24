@@ -370,7 +370,7 @@ footer a { color: var(--accent); text-decoration: none; }
   </div>
 
   <footer>
-    Built with <a href="https://github.com/gyoomei/mimodetect" target="_blank">Xiaomi MiMo V2.5</a> · 
+    Built with <a href="https://github.com/gyoomei/mimodetect" target="_blank">MiMo + GPT-OSS 20B</a> · 
     <a href="https://text.pollinations.ai/" target="_blank">Pollinations.ai</a> free API · 
     Zero dependencies · 100% client-side
   </footer>
@@ -378,7 +378,7 @@ footer a { color: var(--accent); text-decoration: none; }
 
 <script>
 const POLLINATIONS = 'https://text.pollinations.ai/openai';
-const MODEL = 'xiaomi/mimo-v2-pro';
+const MODEL = 'openai-fast';
 
 const samples = {
   ai: `Artificial intelligence has revolutionized numerous industries, fundamentally transforming how businesses operate and deliver value to their customers. The integration of machine learning algorithms into existing workflows has enabled organizations to automate complex decision-making processes, thereby significantly improving operational efficiency and reducing human error. Furthermore, the advent of large language models has opened unprecedented possibilities in natural language processing, allowing for more sophisticated human-computer interactions. As we continue to advance in this technological landscape, it is imperative that we consider the ethical implications of AI deployment, ensuring that these powerful tools are developed and utilized in a manner that benefits society as a whole while mitigating potential risks and biases.`,
@@ -426,30 +426,17 @@ async function detect() {
   btn.textContent = 'Analyzing';
 
   try {
-    const prompt = `You are an expert AI text detector. Analyze the following text and determine if it was written by AI or a human.
+    const prompt = `Analyze if this text is AI-generated or human-written. Reply ONLY valid JSON, no other text.
 
-TEXT TO ANALYZE:
-"""
-${text}
-"""
+TEXT:
+"${text.substring(0, 800)}"
 
-Respond ONLY with valid JSON (no markdown, no code blocks):
-{
-  "ai_probability": <number 0-100>,
-  "verdict": "<AI-Generated|Human-Written|Mixed>",
-  "metrics": {
-    "perplexity_estimate": <number 0-100, higher=more predictable=more AI>,
-    "vocabulary_diversity": <number 0-100, higher=more diverse>,
-    "sentence_variation": <number 0-100, higher=more varied>,
-    "personal_voice": <number 0-100, higher=more personal>,
-    "structural_coherence": <number 0-100, higher=more structured>
-  },
-  "sentences": [
-    {"text": "<sentence>", "label": "<ai|human|neutral>", "confidence": <0-100>}
-  ],
-  "reasoning": "<2-3 sentence explanation of why you classified this text>"
-}`;
+JSON format:
+{"ai_probability":0-100,"verdict":"AI-Generated"|"Human-Written"|"Mixed","metrics":{"perplexity_estimate":0-100,"vocabulary_diversity":0-100,"sentence_variation":0-100,"personal_voice":0-100,"structural_coherence":0-100},"sentences":[{"text":"sentence","label":"ai"|"human"|"neutral","confidence":0-100}],"reasoning":"brief explanation"}`;
 
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 30000);
+    
     const res = await fetch(POLLINATIONS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -458,8 +445,10 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
         seed: 42
-      })
+      }),
+      signal: ctrl.signal
     });
+    clearTimeout(timeout);
 
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content || data.choices?.[0]?.message || '';
@@ -495,7 +484,10 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
     renderHistory();
 
   } catch(err) {
-    alert('Analysis failed: ' + err.message + '\nPlease try again.');
+    const msg = err.name === 'AbortError' 
+      ? 'Analysis timed out (30s). The AI model is busy — please try again.' 
+      : 'Analysis failed: ' + err.message;
+    alert(msg + '\n\nTip: Try with shorter text (< 500 chars) for faster results.');
   }
 
   btn.classList.remove('loading');
