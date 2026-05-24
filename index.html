@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiMoDetect — AI vs Human Text Checker</title>
+<meta name="description" content="Detect AI-generated text with Xiaomi MiMo V2.5. Paste any text and get instant AI probability analysis with sentence-level highlights.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #02040a;
+  --bg-card: #0a0c14;
+  --bg-card-hover: #0f111a;
+  --bg-input: #0d0f18;
+  --border: #1a1d2e;
+  --border-focus: #6366f1;
+  --text: #e2e4ed;
+  --text-secondary: #8b8fa3;
+  --text-muted: #555871;
+  --accent: #6366f1;
+  --accent-glow: rgba(99, 102, 241, 0.15);
+  --accent-hover: #818cf8;
+  --green: #22c55e;
+  --green-bg: rgba(34, 197, 94, 0.1);
+  --red: #ef4444;
+  --red-bg: rgba(239, 68, 68, 0.1);
+  --yellow: #eab308;
+  --yellow-bg: rgba(234, 179, 8, 0.1);
+  --gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+  --mesh-1: #6366f1;
+  --mesh-2: #a855f7;
+  --mesh-3: #ec4899;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --font: 'Inter', -apple-system, sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f8f9fc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f3f4f8;
+  --bg-input: #f1f3f9;
+  --border: #e2e4ed;
+  --border-focus: #6366f1;
+  --text: #1a1d2e;
+  --text-secondary: #555871;
+  --text-muted: #8b8fa3;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --accent-glow: rgba(99, 102, 241, 0.08);
+  --green-bg: rgba(34, 197, 94, 0.08);
+  --red-bg: rgba(239, 68, 68, 0.08);
+  --yellow-bg: rgba(234, 179, 8, 0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+.mesh-gradient {
+  position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at 20% 30%, var(--mesh-1) 0%, transparent 40%),
+              radial-gradient(circle at 80% 70%, var(--mesh-2) 0%, transparent 40%),
+              radial-gradient(circle at 50% 50%, var(--mesh-3) 0%, transparent 50%);
+  opacity: 0.04; animation: meshMove 20s ease-in-out infinite alternate;
+  pointer-events: none; z-index: 0;
+}
+@keyframes meshMove {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(-5%, -5%) rotate(5deg); }
+}
+.container {
+  max-width: 900px; margin: 0 auto; padding: 24px 20px 80px;
+  position: relative; z-index: 1;
+}
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 0; margin-bottom: 40px;
+}
+.logo {
+  display: flex; align-items: center; gap: 12px;
+  font-weight: 800; font-size: 20px; letter-spacing: -0.5px;
+}
+.logo-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--gradient); display: flex; align-items: center; justify-content: center;
+  font-size: 20px; box-shadow: 0 2px 12px rgba(99,102,241,0.3);
+}
+.header-actions { display: flex; gap: 8px; }
+.theme-toggle {
+  width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-secondary); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  transition: all 0.2s;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.hero {
+  text-align: center; margin-bottom: 48px;
+}
+.hero h1 {
+  font-size: clamp(28px, 5vw, 44px); font-weight: 900; letter-spacing: -1.5px;
+  line-height: 1.1; margin-bottom: 16px;
+  background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero p {
+  font-size: 16px; color: var(--text-secondary); max-width: 500px; margin: 0 auto;
+  line-height: 1.6;
+}
+.input-section {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
+  transition: border-color 0.3s;
+}
+.input-section:focus-within { border-color: var(--border-focus); }
+.input-section textarea {
+  width: 100%; min-height: 180px; background: transparent; border: none;
+  color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.7;
+  resize: vertical; outline: none;
+}
+.input-section textarea::placeholder { color: var(--text-muted); }
+.input-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.char-count { font-size: 13px; color: var(--text-muted); }
+.btn-detect {
+  padding: 10px 28px; border-radius: 10px; border: none;
+  background: var(--gradient); color: white; font-family: var(--font);
+  font-weight: 600; font-size: 14px; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 2px 12px rgba(99,102,241,0.3);
+}
+.btn-detect:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+.btn-detect:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-detect.loading { pointer-events: none; }
+.btn-detect.loading::after {
+  content: ''; display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+  border-radius: 50%; animation: spin 0.6s linear infinite; margin-left: 8px; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.results { display: none; }
+.results.active { display: block; animation: fadeUp 0.5s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.score-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 32px; margin-bottom: 24px;
+  text-align: center;
+}
+.score-ring {
+  width: 160px; height: 160px; margin: 0 auto 24px; position: relative;
+}
+.score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.score-ring circle {
+  fill: none; stroke-width: 8; stroke-linecap: round;
+}
+.score-ring .bg { stroke: var(--border); }
+.score-ring .fill {
+  stroke: var(--accent); stroke-dasharray: 440; stroke-dashoffset: 440;
+  transition: stroke-dashoffset 1.5s ease;
+}
+.score-ring .fill.ai { stroke: var(--red); }
+.score-ring .fill.human { stroke: var(--green); }
+.score-ring .fill.mixed { stroke: var(--yellow); }
+.score-value {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  text-align: center;
+}
+.score-value .number { font-size: 36px; font-weight: 900; letter-spacing: -1px; }
+.score-value .label { font-size: 12px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+.verdict {
+  font-size: 22px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px;
+}
+.verdict.ai { color: var(--red); }
+.verdict.human { color: var(--green); }
+.verdict.mixed { color: var(--yellow); }
+.verdict-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px; margin-bottom: 24px;
+}
+.metric-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.metric-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.metric-bar {
+  height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 8px;
+}
+.metric-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.metric-value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+.analysis-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
+}
+.analysis-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.3px; }
+.sentence-list { list-style: none; }
+.sentence-item {
+  padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
+  font-size: 14px; line-height: 1.6; position: relative;
+  border-left: 3px solid transparent;
+}
+.sentence-item.ai-suspect {
+  background: var(--red-bg); border-left-color: var(--red);
+}
+.sentence-item.human-signal {
+  background: var(--green-bg); border-left-color: var(--green);
+}
+.sentence-item.neutral {
+  background: var(--yellow-bg); border-left-color: var(--yellow);
+}
+.sentence-tag {
+  position: absolute; top: 8px; right: 12px; font-size: 10px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 2px 8px; border-radius: 4px;
+}
+.sentence-item.ai-suspect .sentence-tag { background: rgba(239,68,68,0.2); color: var(--red); }
+.sentence-item.human-signal .sentence-tag { background: rgba(34,197,94,0.2); color: var(--green); }
+.sentence-item.neutral .sentence-tag { background: rgba(234,179,8,0.2); color: var(--yellow); }
+.reasoning-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
+}
+.reasoning-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.3px; }
+.reasoning-text {
+  font-size: 14px; line-height: 1.8; color: var(--text-secondary);
+  white-space: pre-wrap;
+}
+.history-section {
+  margin-top: 48px;
+}
+.history-section h2 {
+  font-size: 18px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.3px;
+}
+.history-list { display: flex; flex-direction: column; gap: 8px; }
+.history-item {
+  display: flex; align-items: center; gap: 16px; padding: 12px 16px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); cursor: pointer; transition: all 0.2s;
+}
+.history-item:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+.history-score {
+  width: 44px; height: 44px; border-radius: 10px; display: flex;
+  align-items: center; justify-content: center; font-weight: 800; font-size: 14px;
+  flex-shrink: 0;
+}
+.history-score.ai-bg { background: var(--red-bg); color: var(--red); }
+.history-score.human-bg { background: var(--green-bg); color: var(--green); }
+.history-score.mixed-bg { background: var(--yellow-bg); color: var(--yellow); }
+.history-text { flex: 1; min-width: 0; }
+.history-text .preview { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-text .time { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.empty-state {
+  text-align: center; padding: 48px 20px; color: var(--text-muted);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state p { font-size: 14px; }
+.stats-bar {
+  display: flex; gap: 24px; justify-content: center; margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.stat { text-align: center; }
+.stat .num { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: var(--accent); }
+.stat .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.sample-btns {
+  display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.sample-btn {
+  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-secondary); font-family: var(--font);
+  font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+}
+.sample-btn:hover { border-color: var(--accent); color: var(--accent); }
+footer {
+  text-align: center; padding: 32px 0; color: var(--text-muted); font-size: 12px;
+}
+footer a { color: var(--accent); text-decoration: none; }
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  background: var(--accent-glow); color: var(--accent); margin-bottom: 16px;
+}
+@media (max-width: 640px) {
+  .container { padding: 16px 16px 60px; }
+  .input-section { padding: 16px; }
+  .score-card { padding: 24px 16px; }
+  .score-ring { width: 120px; height: 120px; }
+  .score-value .number { font-size: 28px; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-bar { gap: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="mesh-gradient"></div>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🔍</div>
+      <span>MiMoDetect</span>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌓</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="badge">Powered by Xiaomi MiMo V2.5</div>
+    <h1>Is This Text<br>AI or Human?</h1>
+    <p>Paste any text and get instant probability analysis with sentence-level highlights. Free, private, no signup.</p>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="num" id="totalChecks">0</div><div class="lbl">Texts Checked</div></div>
+    <div class="stat"><div class="num" id="aiDetected">0</div><div class="lbl">AI Detected</div></div>
+    <div class="stat"><div class="num" id="humanDetected">0</div><div class="lbl">Human Confirmed</div></div>
+  </div>
+
+  <div class="sample-btns">
+    <button class="sample-btn" onclick="loadSample('ai')">🤖 Sample AI Text</button>
+    <button class="sample-btn" onclick="loadSample('human')">✍️ Sample Human Text</button>
+    <button class="sample-btn" onclick="loadSample('mixed')">🎭 Sample Mixed Text</button>
+  </div>
+
+  <div class="input-section">
+    <textarea id="textInput" placeholder="Paste your text here...&#10;&#10;Articles, essays, emails, social media posts — anything you want to check. Minimum 50 characters recommended for accurate analysis."></textarea>
+    <div class="input-footer">
+      <span class="char-count"><span id="charCount">0</span> chars · <span id="wordCount">0</span> words</span>
+      <button class="btn-detect" id="detectBtn" onclick="detect()">Detect Origin</button>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="score-card">
+      <div class="score-ring">
+        <svg viewBox="0 0 160 160">
+          <circle class="bg" cx="80" cy="80" r="70"/>
+          <circle class="fill" id="scoreArc" cx="80" cy="80" r="70"/>
+        </svg>
+        <div class="score-value">
+          <div class="number" id="scoreNumber">--</div>
+          <div class="label" id="scoreLabel">AI Probability</div>
+        </div>
+      </div>
+      <div class="verdict" id="verdict">Analyzing...</div>
+      <div class="verdict-desc" id="verdictDesc"></div>
+    </div>
+
+    <div class="metrics-grid" id="metricsGrid"></div>
+
+    <div class="analysis-card">
+      <h3>📝 Sentence Analysis</h3>
+      <ul class="sentence-list" id="sentenceList"></ul>
+    </div>
+
+    <div class="reasoning-card">
+      <h3>🧠 MiMo Reasoning</h3>
+      <div class="reasoning-text" id="reasoningText"></div>
+    </div>
+  </div>
+
+  <div class="history-section" id="historySection" style="display:none">
+    <h2>📊 History</h2>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <footer>
+    Built with <a href="https://github.com/gyoomei/mimodetect" target="_blank">Xiaomi MiMo V2.5</a> · 
+    <a href="https://text.pollinations.ai/" target="_blank">Pollinations.ai</a> free API · 
+    Zero dependencies · 100% client-side
+  </footer>
+</div>
+
+<script>
+const POLLINATIONS = 'https://text.pollinations.ai/openai';
+const MODEL = 'xiaomi/mimo-v2-pro';
+
+const samples = {
+  ai: `Artificial intelligence has revolutionized numerous industries, fundamentally transforming how businesses operate and deliver value to their customers. The integration of machine learning algorithms into existing workflows has enabled organizations to automate complex decision-making processes, thereby significantly improving operational efficiency and reducing human error. Furthermore, the advent of large language models has opened unprecedented possibilities in natural language processing, allowing for more sophisticated human-computer interactions. As we continue to advance in this technological landscape, it is imperative that we consider the ethical implications of AI deployment, ensuring that these powerful tools are developed and utilized in a manner that benefits society as a whole while mitigating potential risks and biases.`,
+  human: `ok so I just got back from this weird coffee shop downtown and honestly?? the barista put OAT milk in my latte when I specifically said ALMOND. like I literally watched her do it and didn't say anything because I'm a coward lol. anyway the coffee was still kinda good?? but also I think my stomach is doing something weird now. note to self: speak up next time. also I need to stop spending $7 on coffee when I have instant at home. but the vibes in there were nice ngl, they had this lo-fi playlist going and the wifi was actually fast for once. might go back tbh. just gonna bring my own milk next time lmao`,
+  mixed: `The importance of maintaining a healthy work-life balance cannot be overstated in today's fast-paced digital landscape. Organizations must prioritize employee wellbeing to foster sustainable productivity and innovation. However, I've personally found that the best ideas come at 2am when I should definitely be sleeping lol. There's something about the quiet of late night that just makes my brain work differently. Companies should really consider flexible schedules instead of forcing everyone into the same 9-5 mold. Research consistently demonstrates that autonomy in work arrangements correlates with higher job satisfaction and reduced burnout rates. But also like, sometimes I just need to touch grass and remember that spreadsheets aren't the meaning of life. idk maybe I'm just tired.`
+};
+
+let history = JSON.parse(localStorage.getItem('mimodetect_history') || '[]');
+let stats = JSON.parse(localStorage.getItem('mimodetect_stats') || '{"total":0,"ai":0,"human":0}');
+
+function init() {
+  updateStats();
+  renderHistory();
+  const saved = localStorage.getItem('mimodetect_theme');
+  if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  document.getElementById('textInput').addEventListener('input', updateCounts);
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('mimodetect_theme', next);
+}
+
+function updateCounts() {
+  const text = document.getElementById('textInput').value;
+  document.getElementById('charCount').textContent = text.length;
+  document.getElementById('wordCount').textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
+}
+
+function loadSample(type) {
+  document.getElementById('textInput').value = samples[type];
+  updateCounts();
+}
+
+async function detect() {
+  const text = document.getElementById('textInput').value.trim();
+  if (text.length < 20) { alert('Please enter at least 20 characters'); return; }
+
+  const btn = document.getElementById('detectBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.textContent = 'Analyzing';
+
+  try {
+    const prompt = `You are an expert AI text detector. Analyze the following text and determine if it was written by AI or a human.
+
+TEXT TO ANALYZE:
+"""
+${text}
+"""
+
+Respond ONLY with valid JSON (no markdown, no code blocks):
+{
+  "ai_probability": <number 0-100>,
+  "verdict": "<AI-Generated|Human-Written|Mixed>",
+  "metrics": {
+    "perplexity_estimate": <number 0-100, higher=more predictable=more AI>,
+    "vocabulary_diversity": <number 0-100, higher=more diverse>,
+    "sentence_variation": <number 0-100, higher=more varied>,
+    "personal_voice": <number 0-100, higher=more personal>,
+    "structural_coherence": <number 0-100, higher=more structured>
+  },
+  "sentences": [
+    {"text": "<sentence>", "label": "<ai|human|neutral>", "confidence": <0-100>}
+  ],
+  "reasoning": "<2-3 sentence explanation of why you classified this text>"
+}`;
+
+    const res = await fetch(POLLINATIONS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        seed: 42
+      })
+    });
+
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content || data.choices?.[0]?.message || '';
+
+    let parsed;
+    try {
+      const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      parsed = JSON.parse(cleaned);
+    } catch(e) {
+      const match = content.match(/\{[\s\S]*\}/);
+      if (match) parsed = JSON.parse(match[0]);
+      else throw new Error('Failed to parse response');
+    }
+
+    displayResults(parsed, text);
+
+    // Update stats
+    stats.total++;
+    if (parsed.ai_probability >= 60) stats.ai++;
+    else if (parsed.ai_probability <= 40) stats.human++;
+    localStorage.setItem('mimodetect_stats', JSON.stringify(stats));
+    updateStats();
+
+    // Save to history
+    history.unshift({
+      text: text.substring(0, 100),
+      ai_probability: parsed.ai_probability,
+      verdict: parsed.verdict,
+      time: Date.now()
+    });
+    if (history.length > 20) history.pop();
+    localStorage.setItem('mimodetect_history', JSON.stringify(history));
+    renderHistory();
+
+  } catch(err) {
+    alert('Analysis failed: ' + err.message + '\nPlease try again.');
+  }
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+  btn.textContent = 'Detect Origin';
+}
+
+function displayResults(data, fullText) {
+  const results = document.getElementById('results');
+  results.classList.add('active');
+
+  const score = data.ai_probability;
+  const arc = document.getElementById('scoreArc');
+  const circumference = 2 * Math.PI * 70;
+  arc.style.strokeDasharray = circumference;
+  arc.style.strokeDashoffset = circumference - (circumference * score / 100);
+
+  arc.className.baseVal = 'fill';
+  if (score >= 60) arc.classList.add('ai');
+  else if (score <= 40) arc.classList.add('human');
+  else arc.classList.add('mixed');
+
+  document.getElementById('scoreNumber').textContent = score + '%';
+  document.getElementById('scoreLabel').textContent = 'AI Probability';
+
+  const verdict = document.getElementById('verdict');
+  verdict.className = 'verdict';
+  if (score >= 60) { verdict.textContent = '🤖 AI-Generated'; verdict.classList.add('ai'); }
+  else if (score <= 40) { verdict.textContent = '✍️ Human-Written'; verdict.classList.add('human'); }
+  else { verdict.textContent = '🎭 Mixed / Uncertain'; verdict.classList.add('mixed'); }
+
+  document.getElementById('verdictDesc').textContent = data.reasoning || '';
+
+  // Metrics
+  const metrics = data.metrics || {};
+  const grid = document.getElementById('metricsGrid');
+  grid.innerHTML = '';
+  const metricDefs = [
+    { key: 'perplexity_estimate', label: 'Predictability', color: 'var(--red)', icon: '🎯' },
+    { key: 'vocabulary_diversity', label: 'Vocab Diversity', color: 'var(--accent)', icon: '📚' },
+    { key: 'sentence_variation', label: 'Sentence Variety', color: 'var(--green)', icon: '🔄' },
+    { key: 'personal_voice', label: 'Personal Voice', color: 'var(--yellow)', icon: '💬' },
+    { key: 'structural_coherence', label: 'Coherence', color: 'var(--accent-hover)', icon: '🏗️' }
+  ];
+  metricDefs.forEach(m => {
+    const val = metrics[m.key] || 50;
+    const card = document.createElement('div');
+    card.className = 'metric-card';
+    card.innerHTML = `
+      <div class="metric-label">${m.icon} ${m.label}</div>
+      <div class="metric-bar"><div class="metric-bar-fill" style="width:${val}%;background:${m.color}"></div></div>
+      <div class="metric-value" style="color:${m.color}">${val}%</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Sentences
+  const list = document.getElementById('sentenceList');
+  list.innerHTML = '';
+  const sentences = data.sentences || [];
+  sentences.forEach(s => {
+    const li = document.createElement('li');
+    const cls = s.label === 'ai' ? 'ai-suspect' : s.label === 'human' ? 'human-signal' : 'neutral';
+    const tagText = s.label === 'ai' ? 'AI' : s.label === 'human' ? 'Human' : 'Uncertain';
+    li.className = 'sentence-item ' + cls;
+    li.innerHTML = `<span class="sentence-tag">${tagText} ${s.confidence || ''}%</span>${s.text}`;
+    list.appendChild(li);
+  });
+
+  // Reasoning
+  document.getElementById('reasoningText').textContent = data.reasoning || '';
+
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateStats() {
+  document.getElementById('totalChecks').textContent = stats.total;
+  document.getElementById('aiDetected').textContent = stats.ai;
+  document.getElementById('humanDetected').textContent = stats.human;
+}
+
+function renderHistory() {
+  const section = document.getElementById('historySection');
+  const list = document.getElementById('historyList');
+  if (history.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = '';
+  history.forEach((h, i) => {
+    const bgClass = h.ai_probability >= 60 ? 'ai-bg' : h.ai_probability <= 40 ? 'human-bg' : 'mixed-bg';
+    const timeAgo = getTimeAgo(h.time);
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `
+      <div class="history-score ${bgClass}">${h.ai_probability}%</div>
+      <div class="history-text">
+        <div class="preview">${escapeHtml(h.text)}...</div>
+        <div class="time">${timeAgo} · ${h.verdict}</div>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function getTimeAgo(ts) {
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  return Math.floor(hrs / 24) + 'd ago';
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
