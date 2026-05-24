@@ -4,608 +4,499 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MiMoDetect — AI vs Human Text Checker</title>
-<meta name="description" content="Detect AI-generated text with Xiaomi MiMo V2.5. Paste any text and get instant AI probability analysis with sentence-level highlights.">
+<meta name="description" content="Detect AI-generated text instantly. Paste any text and get AI probability analysis with sentence-level highlights. Free, private, no signup.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #02040a;
-  --bg-card: #0a0c14;
-  --bg-card-hover: #0f111a;
-  --bg-input: #0d0f18;
-  --border: #1a1d2e;
-  --border-focus: #6366f1;
-  --text: #e2e4ed;
-  --text-secondary: #8b8fa3;
-  --text-muted: #555871;
-  --accent: #6366f1;
-  --accent-glow: rgba(99, 102, 241, 0.15);
-  --accent-hover: #818cf8;
-  --green: #22c55e;
-  --green-bg: rgba(34, 197, 94, 0.1);
-  --red: #ef4444;
-  --red-bg: rgba(239, 68, 68, 0.1);
-  --yellow: #eab308;
-  --yellow-bg: rgba(234, 179, 8, 0.1);
-  --gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
-  --mesh-1: #6366f1;
-  --mesh-2: #a855f7;
-  --mesh-3: #ec4899;
-  --radius: 12px;
-  --radius-lg: 16px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.3);
-  --font: 'Inter', -apple-system, sans-serif;
-}
-[data-theme="light"] {
-  --bg: #f8f9fc;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f3f4f8;
-  --bg-input: #f1f3f9;
-  --border: #e2e4ed;
-  --border-focus: #6366f1;
-  --text: #1a1d2e;
-  --text-secondary: #555871;
-  --text-muted: #8b8fa3;
-  --shadow: 0 4px 24px rgba(0,0,0,0.08);
-  --accent-glow: rgba(99, 102, 241, 0.08);
-  --green-bg: rgba(34, 197, 94, 0.08);
-  --red-bg: rgba(239, 68, 68, 0.08);
-  --yellow-bg: rgba(234, 179, 8, 0.08);
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-  transition: background 0.3s, color 0.3s;
-}
-.mesh-gradient {
-  position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
-  background: radial-gradient(circle at 20% 30%, var(--mesh-1) 0%, transparent 40%),
-              radial-gradient(circle at 80% 70%, var(--mesh-2) 0%, transparent 40%),
-              radial-gradient(circle at 50% 50%, var(--mesh-3) 0%, transparent 50%);
-  opacity: 0.04; animation: meshMove 20s ease-in-out infinite alternate;
-  pointer-events: none; z-index: 0;
-}
-@keyframes meshMove {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  100% { transform: translate(-5%, -5%) rotate(5deg); }
-}
-.container {
-  max-width: 900px; margin: 0 auto; padding: 24px 20px 80px;
-  position: relative; z-index: 1;
-}
-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 0; margin-bottom: 40px;
-}
-.logo {
-  display: flex; align-items: center; gap: 12px;
-  font-weight: 800; font-size: 20px; letter-spacing: -0.5px;
-}
-.logo-icon {
-  width: 40px; height: 40px; border-radius: 10px;
-  background: var(--gradient); display: flex; align-items: center; justify-content: center;
-  font-size: 20px; box-shadow: 0 2px 12px rgba(99,102,241,0.3);
-}
-.header-actions { display: flex; gap: 8px; }
-.theme-toggle {
-  width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);
-  background: var(--bg-card); color: var(--text-secondary); cursor: pointer;
-  display: flex; align-items: center; justify-content: center; font-size: 18px;
-  transition: all 0.2s;
-}
-.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
-.hero {
-  text-align: center; margin-bottom: 48px;
-}
-.hero h1 {
-  font-size: clamp(28px, 5vw, 44px); font-weight: 900; letter-spacing: -1.5px;
-  line-height: 1.1; margin-bottom: 16px;
-  background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.hero p {
-  font-size: 16px; color: var(--text-secondary); max-width: 500px; margin: 0 auto;
-  line-height: 1.6;
-}
-.input-section {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
-  transition: border-color 0.3s;
-}
-.input-section:focus-within { border-color: var(--border-focus); }
-.input-section textarea {
-  width: 100%; min-height: 180px; background: transparent; border: none;
-  color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.7;
-  resize: vertical; outline: none;
-}
-.input-section textarea::placeholder { color: var(--text-muted); }
-.input-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
-}
-.char-count { font-size: 13px; color: var(--text-muted); }
-.btn-detect {
-  padding: 10px 28px; border-radius: 10px; border: none;
-  background: var(--gradient); color: white; font-family: var(--font);
-  font-weight: 600; font-size: 14px; cursor: pointer;
-  transition: all 0.2s; box-shadow: 0 2px 12px rgba(99,102,241,0.3);
-}
-.btn-detect:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
-.btn-detect:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.btn-detect.loading { pointer-events: none; }
-.btn-detect.loading::after {
-  content: ''; display: inline-block; width: 14px; height: 14px;
-  border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
-  border-radius: 50%; animation: spin 0.6s linear infinite; margin-left: 8px; vertical-align: middle;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.results { display: none; }
-.results.active { display: block; animation: fadeUp 0.5s ease; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.score-card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 32px; margin-bottom: 24px;
-  text-align: center;
-}
-.score-ring {
-  width: 160px; height: 160px; margin: 0 auto 24px; position: relative;
-}
-.score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.score-ring circle {
-  fill: none; stroke-width: 8; stroke-linecap: round;
-}
-.score-ring .bg { stroke: var(--border); }
-.score-ring .fill {
-  stroke: var(--accent); stroke-dasharray: 440; stroke-dashoffset: 440;
-  transition: stroke-dashoffset 1.5s ease;
-}
-.score-ring .fill.ai { stroke: var(--red); }
-.score-ring .fill.human { stroke: var(--green); }
-.score-ring .fill.mixed { stroke: var(--yellow); }
-.score-value {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  text-align: center;
-}
-.score-value .number { font-size: 36px; font-weight: 900; letter-spacing: -1px; }
-.score-value .label { font-size: 12px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
-.verdict {
-  font-size: 22px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px;
-}
-.verdict.ai { color: var(--red); }
-.verdict.human { color: var(--green); }
-.verdict.mixed { color: var(--yellow); }
-.verdict-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
-.metrics-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px; margin-bottom: 24px;
-}
-.metric-card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 16px;
-}
-.metric-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-.metric-bar {
-  height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 8px;
-}
-.metric-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
-.metric-value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-.analysis-card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
-}
-.analysis-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.3px; }
-.sentence-list { list-style: none; }
-.sentence-item {
-  padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
-  font-size: 14px; line-height: 1.6; position: relative;
-  border-left: 3px solid transparent;
-}
-.sentence-item.ai-suspect {
-  background: var(--red-bg); border-left-color: var(--red);
-}
-.sentence-item.human-signal {
-  background: var(--green-bg); border-left-color: var(--green);
-}
-.sentence-item.neutral {
-  background: var(--yellow-bg); border-left-color: var(--yellow);
-}
-.sentence-tag {
-  position: absolute; top: 8px; right: 12px; font-size: 10px;
-  font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-  padding: 2px 8px; border-radius: 4px;
-}
-.sentence-item.ai-suspect .sentence-tag { background: rgba(239,68,68,0.2); color: var(--red); }
-.sentence-item.human-signal .sentence-tag { background: rgba(34,197,94,0.2); color: var(--green); }
-.sentence-item.neutral .sentence-tag { background: rgba(234,179,8,0.2); color: var(--yellow); }
-.reasoning-card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
-}
-.reasoning-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.3px; }
-.reasoning-text {
-  font-size: 14px; line-height: 1.8; color: var(--text-secondary);
-  white-space: pre-wrap;
-}
-.history-section {
-  margin-top: 48px;
-}
-.history-section h2 {
-  font-size: 18px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.3px;
-}
-.history-list { display: flex; flex-direction: column; gap: 8px; }
-.history-item {
-  display: flex; align-items: center; gap: 16px; padding: 12px 16px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius); cursor: pointer; transition: all 0.2s;
-}
-.history-item:hover { border-color: var(--accent); background: var(--bg-card-hover); }
-.history-score {
-  width: 44px; height: 44px; border-radius: 10px; display: flex;
-  align-items: center; justify-content: center; font-weight: 800; font-size: 14px;
-  flex-shrink: 0;
-}
-.history-score.ai-bg { background: var(--red-bg); color: var(--red); }
-.history-score.human-bg { background: var(--green-bg); color: var(--green); }
-.history-score.mixed-bg { background: var(--yellow-bg); color: var(--yellow); }
-.history-text { flex: 1; min-width: 0; }
-.history-text .preview { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.history-text .time { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-.empty-state {
-  text-align: center; padding: 48px 20px; color: var(--text-muted);
-}
-.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
-.empty-state p { font-size: 14px; }
-.stats-bar {
-  display: flex; gap: 24px; justify-content: center; margin-bottom: 40px;
-  flex-wrap: wrap;
-}
-.stat { text-align: center; }
-.stat .num { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: var(--accent); }
-.stat .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-.sample-btns {
-  display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
-}
-.sample-btn {
-  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
-  background: var(--bg-card); color: var(--text-secondary); font-family: var(--font);
-  font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-}
-.sample-btn:hover { border-color: var(--accent); color: var(--accent); }
-footer {
-  text-align: center; padding: 32px 0; color: var(--text-muted); font-size: 12px;
-}
-footer a { color: var(--accent); text-decoration: none; }
-.badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;
-  background: var(--accent-glow); color: var(--accent); margin-bottom: 16px;
-}
-@media (max-width: 640px) {
-  .container { padding: 16px 16px 60px; }
-  .input-section { padding: 16px; }
-  .score-card { padding: 24px 16px; }
-  .score-ring { width: 120px; height: 120px; }
-  .score-value .number { font-size: 28px; }
-  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-  .stats-bar { gap: 16px; }
-}
+:root{--bg:#02040a;--bg-card:#0a0c14;--bg-card-hover:#0f111a;--bg-input:#0d0f18;--border:#1a1d2e;--border-focus:#6366f1;--text:#e2e4ed;--text-secondary:#8b8fa3;--text-muted:#555871;--accent:#6366f1;--accent-glow:rgba(99,102,241,.15);--accent-hover:#818cf8;--green:#22c55e;--green-bg:rgba(34,197,94,.1);--red:#ef4444;--red-bg:rgba(239,68,68,.1);--yellow:#eab308;--yellow-bg:rgba(234,179,8,.1);--gradient:linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7);--mesh-1:#6366f1;--mesh-2:#a855f7;--mesh-3:#ec4899;--radius:12px;--radius-lg:16px;--shadow:0 4px 24px rgba(0,0,0,.3);--font:'Inter',-apple-system,sans-serif}
+[data-theme="light"]{--bg:#f8f9fc;--bg-card:#fff;--bg-card-hover:#f3f4f8;--bg-input:#f1f3f9;--border:#e2e4ed;--text:#1a1d2e;--text-secondary:#555871;--text-muted:#8b8fa3;--shadow:0 4px 24px rgba(0,0,0,.08);--accent-glow:rgba(99,102,241,.08);--green-bg:rgba(34,197,94,.08);--red-bg:rgba(239,68,68,.08);--yellow-bg:rgba(234,179,8,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+.mesh{position:fixed;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 20% 30%,var(--mesh-1) 0%,transparent 40%),radial-gradient(circle at 80% 70%,var(--mesh-2) 0%,transparent 40%),radial-gradient(circle at 50% 50%,var(--mesh-3) 0%,transparent 50%);opacity:.04;animation:meshMove 20s ease-in-out infinite alternate;pointer-events:none;z-index:0}
+@keyframes meshMove{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(-5%,-5%) rotate(5deg)}}
+.container{max-width:900px;margin:0 auto;padding:24px 20px 80px;position:relative;z-index:1}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;margin-bottom:40px}
+.logo{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px;letter-spacing:-.5px}
+.logo-icon{width:40px;height:40px;border-radius:10px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 12px rgba(99,102,241,.3)}
+.header-actions{display:flex;gap:8px}
+.theme-toggle{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.hero{text-align:center;margin-bottom:48px}
+.hero h1{font-size:clamp(28px,5vw,44px);font-weight:900;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:16px;color:var(--text-secondary);max-width:500px;margin:0 auto;line-height:1.6}
+.input-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;transition:border-color .3s}
+.input-section:focus-within{border-color:var(--border-focus)}
+.input-section textarea{width:100%;min-height:180px;background:transparent;border:none;color:var(--text);font-family:var(--font);font-size:15px;line-height:1.7;resize:vertical;outline:none}
+.input-section textarea::placeholder{color:var(--text-muted)}
+.input-footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.char-count{font-size:13px;color:var(--text-muted)}
+.btn-row{display:flex;gap:8px}
+.btn-detect{padding:10px 28px;border-radius:10px;border:none;background:var(--gradient);color:#fff;font-family:var(--font);font-weight:600;font-size:14px;cursor:pointer;transition:all .2s;box-shadow:0 2px 12px rgba(99,102,241,.3)}
+.btn-detect:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(99,102,241,.4)}
+.btn-detect:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-detect.loading{pointer-events:none}
+.btn-detect.loading::after{content:'';display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;margin-left:8px;vertical-align:middle}
+.btn-ai{padding:10px 20px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);font-family:var(--font);font-weight:500;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-ai:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ai:disabled{opacity:.4;cursor:not-allowed}
+.btn-ai.loading::after{content:'';display:inline-block;width:12px;height:12px;border:2px solid rgba(99,102,241,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-left:6px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.results{display:none}
+.results.active{display:block;animation:fadeUp .5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.score-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;margin-bottom:24px;text-align:center}
+.score-ring{width:160px;height:160px;margin:0 auto 24px;position:relative}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:8;stroke-linecap:round}
+.score-ring .bg{stroke:var(--border)}
+.score-ring .fill{stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1.2s ease}
+.score-ring .fill.ai{stroke:var(--red)}
+.score-ring .fill.human{stroke:var(--green)}
+.score-ring .fill.mixed{stroke:var(--yellow)}
+.score-value{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.score-value .number{font-size:36px;font-weight:900;letter-spacing:-1px}
+.score-value .label{font-size:12px;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:1px}
+.verdict{font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-.5px}
+.verdict.ai{color:var(--red)}
+.verdict.human{color:var(--green)}
+.verdict.mixed{color:var(--yellow)}
+.verdict-desc{font-size:14px;color:var(--text-secondary);line-height:1.6}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;background:var(--accent-glow);color:var(--accent);margin-bottom:16px}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.metric-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.metric-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.metric-bar-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.metric-value{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.analysis-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px}
+.analysis-card h3{font-size:16px;font-weight:700;margin-bottom:16px;letter-spacing:-.3px}
+.sentence-list{list-style:none}
+.sentence-item{padding:12px 16px;border-radius:8px;margin-bottom:8px;font-size:14px;line-height:1.6;position:relative;border-left:3px solid transparent}
+.sentence-item.ai-suspect{background:var(--red-bg);border-left-color:var(--red)}
+.sentence-item.human-signal{background:var(--green-bg);border-left-color:var(--green)}
+.sentence-item.neutral{background:var(--yellow-bg);border-left-color:var(--yellow)}
+.sentence-tag{position:absolute;top:8px;right:12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:4px}
+.sentence-item.ai-suspect .sentence-tag{background:rgba(239,68,68,.2);color:var(--red)}
+.sentence-item.human-signal .sentence-tag{background:rgba(34,197,94,.2);color:var(--green)}
+.sentence-item.neutral .sentence-tag{background:rgba(234,179,8,.2);color:var(--yellow)}
+.reasoning-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px}
+.reasoning-card h3{font-size:16px;font-weight:700;margin-bottom:16px;letter-spacing:-.3px}
+.reasoning-text{font-size:14px;line-height:1.8;color:var(--text-secondary);white-space:pre-wrap}
+.signals-list{margin-top:12px}
+.signal-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text-secondary)}
+.signal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.signal-dot.ai{background:var(--red)}
+.signal-dot.human{background:var(--green)}
+.history-section{margin-top:48px}
+.history-section h2{font-size:18px;font-weight:700;margin-bottom:16px;letter-spacing:-.3px}
+.history-list{display:flex;flex-direction:column;gap:8px}
+.history-item{display:flex;align-items:center;gap:16px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s}
+.history-item:hover{border-color:var(--accent);background:var(--bg-card-hover)}
+.history-score{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.history-score.ai-bg{background:var(--red-bg);color:var(--red)}
+.history-score.human-bg{background:var(--green-bg);color:var(--green)}
+.history-score.mixed-bg{background:var(--yellow-bg);color:var(--yellow)}
+.history-text{flex:1;min-width:0}
+.history-text .preview{font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-text .time{font-size:11px;color:var(--text-muted);margin-top:4px}
+.sample-btns{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.sample-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.sample-btn:hover{border-color:var(--accent);color:var(--accent)}
+.stats-bar{display:flex;gap:24px;justify-content:center;margin-bottom:40px;flex-wrap:wrap}
+.stat{text-align:center}
+.stat .num{font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
+.stat .lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+footer{text-align:center;padding:32px 0;color:var(--text-muted);font-size:12px}
+footer a{color:var(--accent);text-decoration:none}
+.source-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-left:8px}
+.source-badge.heuristic{background:rgba(99,102,241,.15);color:var(--accent)}
+.source-badge.ai{background:rgba(168,85,247,.15);color:#a855f7}
+@media(max-width:640px){.container{padding:16px 16px 60px}.input-section{padding:16px}.score-card{padding:24px 16px}.score-ring{width:120px;height:120px}.score-value .number{font-size:28px}.metrics-grid{grid-template-columns:repeat(2,1fr)}.stats-bar{gap:16px}.btn-row{flex-direction:column}}
 </style>
 </head>
 <body>
-<div class="mesh-gradient"></div>
+<div class="mesh"></div>
 <div class="container">
   <header>
-    <div class="logo">
-      <div class="logo-icon">🔍</div>
-      <span>MiMoDetect</span>
-    </div>
-    <div class="header-actions">
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌓</button>
-    </div>
+    <div class="logo"><div class="logo-icon">🔍</div><span>MiMoDetect</span></div>
+    <div class="header-actions"><button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌓</button></div>
   </header>
-
   <div class="hero">
-    <div class="badge">Powered by Xiaomi MiMo V2.5</div>
+    <div class="badge">AI Text Detection</div>
     <h1>Is This Text<br>AI or Human?</h1>
-    <p>Paste any text and get instant probability analysis with sentence-level highlights. Free, private, no signup.</p>
+    <p>Paste any text and get instant probability analysis. Heuristic engine + optional AI verification. Free, private, no signup.</p>
   </div>
-
   <div class="stats-bar">
     <div class="stat"><div class="num" id="totalChecks">0</div><div class="lbl">Texts Checked</div></div>
     <div class="stat"><div class="num" id="aiDetected">0</div><div class="lbl">AI Detected</div></div>
     <div class="stat"><div class="num" id="humanDetected">0</div><div class="lbl">Human Confirmed</div></div>
   </div>
-
   <div class="sample-btns">
     <button class="sample-btn" onclick="loadSample('ai')">🤖 Sample AI Text</button>
     <button class="sample-btn" onclick="loadSample('human')">✍️ Sample Human Text</button>
     <button class="sample-btn" onclick="loadSample('mixed')">🎭 Sample Mixed Text</button>
   </div>
-
   <div class="input-section">
-    <textarea id="textInput" placeholder="Paste your text here...&#10;&#10;Articles, essays, emails, social media posts — anything you want to check. Minimum 50 characters recommended for accurate analysis."></textarea>
+    <textarea id="textInput" placeholder="Paste your text here...&#10;&#10;Articles, essays, emails, social media posts — anything you want to check."></textarea>
     <div class="input-footer">
       <span class="char-count"><span id="charCount">0</span> chars · <span id="wordCount">0</span> words</span>
-      <button class="btn-detect" id="detectBtn" onclick="detect()">Detect Origin</button>
+      <div class="btn-row">
+        <button class="btn-ai" id="aiBtn" onclick="detectAI()">🧠 AI Verify</button>
+        <button class="btn-detect" id="detectBtn" onclick="detect()">⚡ Detect</button>
+      </div>
     </div>
   </div>
-
   <div class="results" id="results">
     <div class="score-card">
       <div class="score-ring">
-        <svg viewBox="0 0 160 160">
-          <circle class="bg" cx="80" cy="80" r="70"/>
-          <circle class="fill" id="scoreArc" cx="80" cy="80" r="70"/>
-        </svg>
-        <div class="score-value">
-          <div class="number" id="scoreNumber">--</div>
-          <div class="label" id="scoreLabel">AI Probability</div>
-        </div>
+        <svg viewBox="0 0 160 160"><circle class="bg" cx="80" cy="80" r="70"/><circle class="fill" id="scoreArc" cx="80" cy="80" r="70"/></svg>
+        <div class="score-value"><div class="number" id="scoreNumber">--</div><div class="label">AI Probability</div></div>
       </div>
       <div class="verdict" id="verdict">Analyzing...</div>
       <div class="verdict-desc" id="verdictDesc"></div>
     </div>
-
     <div class="metrics-grid" id="metricsGrid"></div>
-
     <div class="analysis-card">
-      <h3>📝 Sentence Analysis</h3>
+      <h3>📝 Sentence Analysis <span class="source-badge" id="sourceBadge">heuristic</span></h3>
       <ul class="sentence-list" id="sentenceList"></ul>
     </div>
-
     <div class="reasoning-card">
-      <h3>🧠 MiMo Reasoning</h3>
+      <h3>🧠 Analysis</h3>
       <div class="reasoning-text" id="reasoningText"></div>
+      <div class="signals-list" id="signalsList"></div>
     </div>
   </div>
-
   <div class="history-section" id="historySection" style="display:none">
     <h2>📊 History</h2>
     <div class="history-list" id="historyList"></div>
   </div>
-
-  <footer>
-    Built with <a href="https://github.com/gyoomei/mimodetect" target="_blank">MiMo + GPT-OSS 20B</a> · 
-    <a href="https://text.pollinations.ai/" target="_blank">Pollinations.ai</a> free API · 
-    Zero dependencies · 100% client-side
-  </footer>
+  <footer>Built with heuristic analysis + <a href="https://text.pollinations.ai/" target="_blank">Pollinations.ai</a> · Zero deps · 100% client-side</footer>
 </div>
 
 <script>
-const POLLINATIONS = 'https://text.pollinations.ai/openai';
-const MODEL = 'openai-fast';
-
-const samples = {
-  ai: `Artificial intelligence has revolutionized numerous industries, fundamentally transforming how businesses operate and deliver value to their customers. The integration of machine learning algorithms into existing workflows has enabled organizations to automate complex decision-making processes, thereby significantly improving operational efficiency and reducing human error. Furthermore, the advent of large language models has opened unprecedented possibilities in natural language processing, allowing for more sophisticated human-computer interactions. As we continue to advance in this technological landscape, it is imperative that we consider the ethical implications of AI deployment, ensuring that these powerful tools are developed and utilized in a manner that benefits society as a whole while mitigating potential risks and biases.`,
-  human: `ok so I just got back from this weird coffee shop downtown and honestly?? the barista put OAT milk in my latte when I specifically said ALMOND. like I literally watched her do it and didn't say anything because I'm a coward lol. anyway the coffee was still kinda good?? but also I think my stomach is doing something weird now. note to self: speak up next time. also I need to stop spending $7 on coffee when I have instant at home. but the vibes in there were nice ngl, they had this lo-fi playlist going and the wifi was actually fast for once. might go back tbh. just gonna bring my own milk next time lmao`,
-  mixed: `The importance of maintaining a healthy work-life balance cannot be overstated in today's fast-paced digital landscape. Organizations must prioritize employee wellbeing to foster sustainable productivity and innovation. However, I've personally found that the best ideas come at 2am when I should definitely be sleeping lol. There's something about the quiet of late night that just makes my brain work differently. Companies should really consider flexible schedules instead of forcing everyone into the same 9-5 mold. Research consistently demonstrates that autonomy in work arrangements correlates with higher job satisfaction and reduced burnout rates. But also like, sometimes I just need to touch grass and remember that spreadsheets aren't the meaning of life. idk maybe I'm just tired.`
+const samples={
+ai:`Artificial intelligence has revolutionized numerous industries, fundamentally transforming how businesses operate and deliver value to their customers. The integration of machine learning algorithms into existing workflows has enabled organizations to automate complex decision-making processes, thereby significantly improving operational efficiency and reducing human error. Furthermore, the advent of large language models has opened unprecedented possibilities in natural language processing, allowing for more sophisticated human-computer interactions. As we continue to advance in this technological landscape, it is imperative that we consider the ethical implications of AI deployment, ensuring that these powerful tools are developed and utilized in a manner that benefits society as a whole while mitigating potential risks and biases.`,
+human:`ok so I just got back from this weird coffee shop downtown and honestly?? the barista put OAT milk in my latte when I specifically said ALMOND. like I literally watched her do it and didn't say anything because I'm a coward lol. anyway the coffee was still kinda good?? but also I think my stomach is doing something weird now. note to self: speak up next time. also I need to stop spending $7 on coffee when I have instant at home. but the vibes in there were nice ngl, they had this lo-fi playlist going and the wifi was actually fast for once. might go back tbh. just gonna bring my own milk next time lmao`,
+mixed:`The importance of maintaining a healthy work-life balance cannot be overstated in today's fast-paced digital landscape. Organizations must prioritize employee wellbeing to foster sustainable productivity and innovation. However, I've personally found that the best ideas come at 2am when I should definitely be sleeping lol. There's something about the quiet of late night that just makes my brain work differently. Companies should really consider flexible schedules instead of forcing everyone into the same 9-5 mold. Research consistently demonstrates that autonomy in work arrangements correlates with higher job satisfaction and reduced burnout rates. But also like, sometimes I just need to touch grass and remember that spreadsheets aren't the meaning of life.`
 };
 
-let history = JSON.parse(localStorage.getItem('mimodetect_history') || '[]');
-let stats = JSON.parse(localStorage.getItem('mimodetect_stats') || '{"total":0,"ai":0,"human":0}');
+let history=JSON.parse(localStorage.getItem('md_h')||'[]');
+let stats=JSON.parse(localStorage.getItem('md_s')||'{"t":0,"a":0,"h":0}');
 
-function init() {
-  updateStats();
-  renderHistory();
-  const saved = localStorage.getItem('mimodetect_theme');
-  if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
-  document.getElementById('textInput').addEventListener('input', updateCounts);
+// --- Heuristic Engine ---
+const AI_WORDS=['furthermore','moreover','additionally','consequently','nevertheless','notwithstanding','henceforth','thereby','wherein','whereby','herein','aforementioned','subsequently','indeed','thus','therefore','accordingly','conversely','alternatively','comprehensive','multifaceted','nuance','paradigm','leverage','facilitate','optimize','streamline','robust','scalable','seamless','holistic','synergy','delineate','elucidate','exacerbate','amalgamate','proliferate','underscore','intricate','pivotal','imperative','unprecedented','fundamentally','significantly','particularly','essentially','predominantly'];
+const HUMAN_WORDS=['lol','lmao','tbh','ngl','idk','imo','btw','omg','nah','yeah','yep','gonna','wanna','gotta','kinda','sorta','basically','literally','honestly','actually','like','dude','bro','ugh','yay','meh','fam','lowkey','highkey','vibe','slay','no cap','fr fr','deadass'];
+const TRANSITION_PHRASES=['in conclusion','to summarize','it is important to note','it is worth noting','as a result','in addition','on the other hand','for instance','in particular','as previously mentioned','in the context of','with respect to','in terms of','it should be noted','it goes without saying'];
+
+function splitSentences(text){
+  return text.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[text];
 }
 
-function toggleTheme() {
-  const html = document.documentElement;
-  const current = html.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  html.setAttribute('data-theme', next);
-  localStorage.setItem('mimodetect_theme', next);
-}
-
-function updateCounts() {
-  const text = document.getElementById('textInput').value;
-  document.getElementById('charCount').textContent = text.length;
-  document.getElementById('wordCount').textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
-}
-
-function loadSample(type) {
-  document.getElementById('textInput').value = samples[type];
-  updateCounts();
-}
-
-async function detect() {
-  const text = document.getElementById('textInput').value.trim();
-  if (text.length < 20) { alert('Please enter at least 20 characters'); return; }
-
-  const btn = document.getElementById('detectBtn');
-  btn.classList.add('loading');
-  btn.disabled = true;
-  btn.textContent = 'Analyzing';
-
-  try {
-    const prompt = `Analyze if this text is AI-generated or human-written. Reply ONLY valid JSON, no other text.
-
-TEXT:
-"${text.substring(0, 800)}"
-
-JSON format:
-{"ai_probability":0-100,"verdict":"AI-Generated"|"Human-Written"|"Mixed","metrics":{"perplexity_estimate":0-100,"vocabulary_diversity":0-100,"sentence_variation":0-100,"personal_voice":0-100,"structural_coherence":0-100},"sentences":[{"text":"sentence","label":"ai"|"human"|"neutral","confidence":0-100}],"reasoning":"brief explanation"}`;
-
-    const ctrl = new AbortController();
-    const timeout = setTimeout(() => ctrl.abort(), 30000);
+function heuristicDetect(text){
+  const sentences=splitSentences(text);
+  const words=text.toLowerCase().split(/\s+/);
+  const totalWords=words.length;
+  const totalChars=text.length;
+  const totalSentences=sentences.length;
+  
+  // 1. AI vocabulary frequency
+  const aiWordCount=words.filter(w=>AI_WORDS.some(aw=>w.includes(aw))).length;
+  const aiWordRatio=aiWordCount/Math.max(totalWords,1);
+  
+  // 2. Human vocabulary frequency
+  const humanWordCount=words.filter(w=>HUMAN_WORDS.some(hw=>w.includes(hw))).length;
+  const humanWordRatio=humanWordCount/Math.max(totalWords,1);
+  
+  // 3. Transition phrase frequency
+  const lowerText=text.toLowerCase();
+  const transitionCount=TRANSITION_PHRASES.filter(p=>lowerText.includes(p)).length;
+  const transitionRatio=transitionCount/Math.max(totalSentences,1);
+  
+  // 4. Sentence length uniformity
+  const sentLengths=sentences.map(s=>s.trim().split(/\s+/).length);
+  const avgSentLen=totalWords/Math.max(totalSentences,1);
+  const sentLenVariance=sentLengths.reduce((a,l)=>a+Math.pow(l-avgSentLen,2),0)/Math.max(totalSentences,1);
+  const sentLenCV=Math.sqrt(sentLenVariance)/Math.max(avgSentLen,1); // coefficient of variation
+  const uniformityScore=Math.max(0,100-sentLenCV*200); // higher = more uniform = more AI
+  
+  // 5. Vocabulary diversity (type-token ratio)
+  const uniqueWords=new Set(words.map(w=>w.toLowerCase().replace(/[^a-z]/g,''))).size;
+  const ttr=uniqueWords/Math.max(totalWords,1);
+  const diversityScore=ttr*100;
+  
+  // 6. Personal pronouns
+  const personalPronouns=['i','me','my','mine','myself','we','our','ours'];
+  const personalCount=words.filter(w=>personalPronouns.includes(w)).length;
+  const personalRatio=personalCount/Math.max(totalWords,1);
+  const personalScore=Math.min(100,personalRatio*1000);
+  
+  // 7. Contractions
+  const contractionCount=(text.match(/\b\w+'\w+\b/g)||[]).length;
+  const contractionRatio=contractionCount/Math.max(totalSentences,1);
+  
+  // 8. Exclamation/question marks
+  const exclCount=(text.match(/[!?]/g)||[]).length;
+  const exclRatio=exclCount/Math.max(totalSentences,1);
+  
+  // 9. Emoji
+  const emojiCount=(text.match(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu)||[]).length;
+  
+  // 10. Average word length
+  const wordLengths=words.map(w=>w.replace(/[^a-z]/gi,'').length).filter(l=>l>0);
+  const avgWordLen=wordLengths.reduce((a,b)=>a+b,0)/Math.max(wordLengths.length,1);
+  
+  // --- Calculate AI probability ---
+  let aiScore=50; // start neutral
+  
+  // AI indicators (push toward AI)
+  aiScore+=aiWordRatio*300; // lots of fancy words
+  aiScore+=transitionRatio*200; // lots of transitions
+  aiScore+=uniformityScore*0.3; // uniform sentence lengths
+  aiScore+=(avgWordLen>5.5?(avgWordLen-5.5)*15:0); // long words
+  aiScore+=(diversityScore<45?(45-diversityScore)*0.5:0); // low diversity
+  
+  // Human indicators (push toward human)
+  aiScore-=humanWordRatio*400; // slang
+  aiScore-=personalScore*0.5; // personal pronouns
+  aiScore-=contractionRatio*30; // contractions
+  aiScore-=exclRatio*15; // exclamations
+  aiScore-=emojiCount*8; // emoji
+  
+  // Clamp
+  aiScore=Math.max(5,Math.min(95,Math.round(aiScore)));
+  
+  // Sentence-level analysis
+  const sentAnalysis=sentences.map(s=>{
+    const sWords=s.toLowerCase().split(/\s+/);
+    const sAiCount=sWords.filter(w=>AI_WORDS.some(aw=>w.includes(aw))).length;
+    const sHumanCount=sWords.filter(w=>HUMAN_WORDS.some(hw=>w.includes(hw))).length;
+    const sPersonalCount=sWords.filter(w=>personalPronouns.includes(w)).length;
+    const sLen=sWords.length;
     
-    const res = await fetch(POLLINATIONS, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        seed: 42
-      }),
-      signal: ctrl.signal
-    });
-    clearTimeout(timeout);
-
-    const data = await res.json();
-    const content = data.choices?.[0]?.message?.content || data.choices?.[0]?.message || '';
-
-    let parsed;
-    try {
-      const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      parsed = JSON.parse(cleaned);
-    } catch(e) {
-      const match = content.match(/\{[\s\S]*\}/);
-      if (match) parsed = JSON.parse(match[0]);
-      else throw new Error('Failed to parse response');
-    }
-
-    displayResults(parsed, text);
-
-    // Update stats
-    stats.total++;
-    if (parsed.ai_probability >= 60) stats.ai++;
-    else if (parsed.ai_probability <= 40) stats.human++;
-    localStorage.setItem('mimodetect_stats', JSON.stringify(stats));
-    updateStats();
-
-    // Save to history
-    history.unshift({
-      text: text.substring(0, 100),
-      ai_probability: parsed.ai_probability,
-      verdict: parsed.verdict,
-      time: Date.now()
-    });
-    if (history.length > 20) history.pop();
-    localStorage.setItem('mimodetect_history', JSON.stringify(history));
-    renderHistory();
-
-  } catch(err) {
-    const msg = err.name === 'AbortError' 
-      ? 'Analysis timed out (30s). The AI model is busy — please try again.' 
-      : 'Analysis failed: ' + err.message;
-    alert(msg + '\n\nTip: Try with shorter text (< 500 chars) for faster results.');
+    let label='neutral',confidence=50;
+    if(sAiCount>0||sLen>35){label='ai';confidence=Math.min(95,60+sAiCount*15+(sLen>35?15:0))}
+    else if(sHumanCount>0||sPersonalCount>1||(s.match(/[!?]{2,}/))){label='human';confidence=Math.min(95,60+sHumanCount*15+sPersonalCount*10)}
+    else{label='neutral';confidence=50}
+    
+    return{text:s.trim(),label,confidence};
+  });
+  
+  // Build signals
+  const signals=[];
+  if(aiWordCount>2)signals.push({type:'ai',text:`${aiWordCount} formal/academic words detected`});
+  if(transitionCount>1)signals.push({type:'ai',text:`${transitionCount} transition phrases`});
+  if(uniformityScore>60)signals.push({type:'ai',text:'Uniform sentence lengths'});
+  if(avgWordLen>5.5)signals.push({type:'ai',text:`High avg word length (${avgWordLen.toFixed(1)} chars)`});
+  if(humanWordCount>0)signals.push({type:'human',text:`${humanWordCount} colloquial expressions`});
+  if(personalCount>2)signals.push({type:'human',text:`${personalCount} personal pronouns`});
+  if(contractionCount>1)signals.push({type:'human',text:`${contractionCount} contractions`});
+  if(emojiCount>0)signals.push({type:'human',text:`${emojiCount} emoji detected`});
+  if(exclCount>2)signals.push({type:'human',text:`${exclCount} exclamation/question marks`});
+  
+  // Reasoning
+  const verdict=aiScore>=60?'AI-Generated':aiScore<=40?'Human-Written':'Mixed / Uncertain';
+  let reasoning='';
+  if(aiScore>=60){
+    reasoning=`This text scores ${aiScore}% AI probability. Key indicators: formal vocabulary, uniform sentence structure, and transitional phrases typical of language model output. `;
+    if(aiWordCount>3)reasoning+=`${aiWordCount} academic words like "${AI_WORDS.find(w=>lowerText.includes(w))||''}" are commonly found in AI text. `;
+    reasoning+='Personal voice and colloquial expressions are minimal.';
+  }else if(aiScore<=40){
+    reasoning=`This text scores ${aiScore}% AI probability — likely human-written. Key indicators: personal voice, colloquial language, irregular sentence structure. `;
+    if(humanWordCount>0)reasoning+=`Uses informal expressions like "${HUMAN_WORDS.find(w=>lowerText.includes(w))||''}" typical of natural writing. `;
+    reasoning+='The text has genuine personality and variation.';
+  }else{
+    reasoning=`This text is ambiguous (${aiScore}% AI probability). It contains both formal/AI-like patterns and personal/human elements. Could be AI-edited human text, or a human writing formally.`;
   }
-
-  btn.classList.remove('loading');
-  btn.disabled = false;
-  btn.textContent = 'Detect Origin';
+  
+  return{
+    ai_probability:aiScore,
+    verdict,
+    metrics:{
+      perplexity_estimate:Math.round(aiWordRatio*300+transitionRatio*200+uniformityScore*0.2),
+      vocabulary_diversity:Math.round(diversityScore),
+      sentence_variation:Math.round(sentLenCV*200),
+      personal_voice:Math.round(personalScore),
+      structural_coherence:Math.round(Math.min(100,50+transitionCount*15+uniformityScore*0.3))
+    },
+    sentences:sentAnalysis,
+    reasoning,
+    signals,
+    source:'heuristic'
+  };
 }
 
-function displayResults(data, fullText) {
-  const results = document.getElementById('results');
+// --- Display ---
+function displayResults(data,text){
+  const results=document.getElementById('results');
   results.classList.add('active');
-
-  const score = data.ai_probability;
-  const arc = document.getElementById('scoreArc');
-  const circumference = 2 * Math.PI * 70;
-  arc.style.strokeDasharray = circumference;
-  arc.style.strokeDashoffset = circumference - (circumference * score / 100);
-
-  arc.className.baseVal = 'fill';
-  if (score >= 60) arc.classList.add('ai');
-  else if (score <= 40) arc.classList.add('human');
-  else arc.classList.add('mixed');
-
-  document.getElementById('scoreNumber').textContent = score + '%';
-  document.getElementById('scoreLabel').textContent = 'AI Probability';
-
-  const verdict = document.getElementById('verdict');
-  verdict.className = 'verdict';
-  if (score >= 60) { verdict.textContent = '🤖 AI-Generated'; verdict.classList.add('ai'); }
-  else if (score <= 40) { verdict.textContent = '✍️ Human-Written'; verdict.classList.add('human'); }
-  else { verdict.textContent = '🎭 Mixed / Uncertain'; verdict.classList.add('mixed'); }
-
-  document.getElementById('verdictDesc').textContent = data.reasoning || '';
-
+  
+  const score=data.ai_probability;
+  const arc=document.getElementById('scoreArc');
+  const circ=2*Math.PI*70;
+  arc.style.strokeDasharray=circ;
+  arc.style.strokeDashoffset=circ-(circ*score/100);
+  arc.className.baseVal='fill';
+  arc.classList.add(score>=60?'ai':score<=40?'human':'mixed');
+  
+  document.getElementById('scoreNumber').textContent=score+'%';
+  const verdict=document.getElementById('verdict');
+  verdict.className='verdict';
+  if(score>=60){verdict.textContent='🤖 AI-Generated';verdict.classList.add('ai')}
+  else if(score<=40){verdict.textContent='✍️ Human-Written';verdict.classList.add('human')}
+  else{verdict.textContent='🎭 Mixed / Uncertain';verdict.classList.add('mixed')}
+  
+  document.getElementById('verdictDesc').textContent=data.reasoning||'';
+  document.getElementById('sourceBadge').textContent=data.source||'heuristic';
+  document.getElementById('sourceBadge').className='source-badge '+(data.source==='ai-verified'?'ai':'heuristic');
+  
   // Metrics
-  const metrics = data.metrics || {};
-  const grid = document.getElementById('metricsGrid');
-  grid.innerHTML = '';
-  const metricDefs = [
-    { key: 'perplexity_estimate', label: 'Predictability', color: 'var(--red)', icon: '🎯' },
-    { key: 'vocabulary_diversity', label: 'Vocab Diversity', color: 'var(--accent)', icon: '📚' },
-    { key: 'sentence_variation', label: 'Sentence Variety', color: 'var(--green)', icon: '🔄' },
-    { key: 'personal_voice', label: 'Personal Voice', color: 'var(--yellow)', icon: '💬' },
-    { key: 'structural_coherence', label: 'Coherence', color: 'var(--accent-hover)', icon: '🏗️' }
+  const metrics=data.metrics||{};
+  const grid=document.getElementById('metricsGrid');
+  grid.innerHTML='';
+  const defs=[
+    {key:'perplexity_estimate',label:'Predictability',color:'var(--red)',icon:'🎯'},
+    {key:'vocabulary_diversity',label:'Vocab Diversity',color:'var(--accent)',icon:'📚'},
+    {key:'sentence_variation',label:'Sentence Variety',color:'var(--green)',icon:'🔄'},
+    {key:'personal_voice',label:'Personal Voice',color:'var(--yellow)',icon:'💬'},
+    {key:'structural_coherence',label:'Coherence',color:'var(--accent-hover)',icon:'🏗️'}
   ];
-  metricDefs.forEach(m => {
-    const val = metrics[m.key] || 50;
-    const card = document.createElement('div');
-    card.className = 'metric-card';
-    card.innerHTML = `
-      <div class="metric-label">${m.icon} ${m.label}</div>
-      <div class="metric-bar"><div class="metric-bar-fill" style="width:${val}%;background:${m.color}"></div></div>
-      <div class="metric-value" style="color:${m.color}">${val}%</div>
-    `;
+  defs.forEach(m=>{
+    const val=metrics[m.key]||50;
+    const card=document.createElement('div');card.className='metric-card';
+    card.innerHTML=`<div class="metric-label">${m.icon} ${m.label}</div><div class="metric-bar"><div class="metric-bar-fill" style="width:${val}%;background:${m.color}"></div></div><div class="metric-value" style="color:${m.color}">${val}%</div>`;
     grid.appendChild(card);
   });
-
+  
   // Sentences
-  const list = document.getElementById('sentenceList');
-  list.innerHTML = '';
-  const sentences = data.sentences || [];
-  sentences.forEach(s => {
-    const li = document.createElement('li');
-    const cls = s.label === 'ai' ? 'ai-suspect' : s.label === 'human' ? 'human-signal' : 'neutral';
-    const tagText = s.label === 'ai' ? 'AI' : s.label === 'human' ? 'Human' : 'Uncertain';
-    li.className = 'sentence-item ' + cls;
-    li.innerHTML = `<span class="sentence-tag">${tagText} ${s.confidence || ''}%</span>${s.text}`;
+  const list=document.getElementById('sentenceList');list.innerHTML='';
+  (data.sentences||[]).forEach(s=>{
+    const li=document.createElement('li');
+    const cls=s.label==='ai'?'ai-suspect':s.label==='human'?'human-signal':'neutral';
+    li.className='sentence-item '+cls;
+    li.innerHTML=`<span class="sentence-tag">${s.label.toUpperCase()} ${s.confidence||''}%</span>${s.text}`;
     list.appendChild(li);
   });
-
+  
   // Reasoning
-  document.getElementById('reasoningText').textContent = data.reasoning || '';
-
-  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('reasoningText').textContent=data.reasoning||'';
+  
+  // Signals
+  const sigList=document.getElementById('signalsList');sigList.innerHTML='';
+  (data.signals||[]).forEach(s=>{
+    const div=document.createElement('div');div.className='signal-item';
+    div.innerHTML=`<div class="signal-dot ${s.type}"></div>${s.text}`;
+    sigList.appendChild(div);
+  });
+  
+  results.scrollIntoView({behavior:'smooth',block:'start'});
+  saveToHistory(text,score,data.verdict);
 }
 
-function updateStats() {
-  document.getElementById('totalChecks').textContent = stats.total;
-  document.getElementById('aiDetected').textContent = stats.ai;
-  document.getElementById('humanDetected').textContent = stats.human;
+function detect(){
+  const text=document.getElementById('textInput').value.trim();
+  if(text.length<20){alert('Please enter at least 20 characters');return}
+  const btn=document.getElementById('detectBtn');
+  btn.classList.add('loading');btn.disabled=true;btn.textContent='Analyzing';
+  
+  setTimeout(()=>{
+    try{
+      const data=heuristicDetect(text);
+      displayResults(data,text);
+      stats.t++;if(data.ai_probability>=60)stats.a++;else if(data.ai_probability<=40)stats.h++;
+      localStorage.setItem('md_s',JSON.stringify(stats));updateStats();
+    }catch(e){alert('Error: '+e.message)}
+    btn.classList.remove('loading');btn.disabled=false;btn.textContent='⚡ Detect';
+  },300); // small delay for UX
 }
 
-function renderHistory() {
-  const section = document.getElementById('historySection');
-  const list = document.getElementById('historyList');
-  if (history.length === 0) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  list.innerHTML = '';
-  history.forEach((h, i) => {
-    const bgClass = h.ai_probability >= 60 ? 'ai-bg' : h.ai_probability <= 40 ? 'human-bg' : 'mixed-bg';
-    const timeAgo = getTimeAgo(h.time);
-    const item = document.createElement('div');
-    item.className = 'history-item';
-    item.innerHTML = `
-      <div class="history-score ${bgClass}">${h.ai_probability}%</div>
-      <div class="history-text">
-        <div class="preview">${escapeHtml(h.text)}...</div>
-        <div class="time">${timeAgo} · ${h.verdict}</div>
-      </div>
-    `;
+async function detectAI(){
+  const text=document.getElementById('textInput').value.trim();
+  if(text.length<20){alert('Please enter at least 20 characters');return}
+  const btn=document.getElementById('aiBtn');
+  btn.classList.add('loading');btn.disabled=true;btn.textContent='Verifying';
+  
+  // Run heuristic first (instant)
+  const heuristic=heuristicDetect(text);
+  
+  try{
+    const ctrl=new AbortController();
+    const timeout=setTimeout(()=>ctrl.abort(),45000);
+    const res=await fetch('https://text.pollinations.ai/openai',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'openai-fast',
+        messages:[{role:'user',content:`Reply ONLY JSON, nothing else. {"ai":0-100,"why":"1 sentence"}. Is this AI or human text? "${text.substring(0,600)}"`}],
+        temperature:0.3
+      }),
+      signal:ctrl.signal
+    });
+    clearTimeout(timeout);
+    const data=await res.json();
+    const content=data.choices?.[0]?.message?.content||'';
+    const match=content.match(/\{[^}]+\}/);
+    if(match){
+      const parsed=JSON.parse(match[0]);
+      const aiScore=parsed.ai||heuristic.ai_probability;
+      const merged={...heuristic,ai_probability:aiScore,reasoning:parsed.reason?`AI says: ${parsed.reason}`:heuristic.reasoning,source:'ai-verified'};
+      merged.verdict=aiScore>=60?'AI-Generated':aiScore<=40?'Human-Written':'Mixed / Uncertain';
+      displayResults(merged,text);
+      stats.t++;if(aiScore>=60)stats.a++;else if(aiScore<=40)stats.h++;
+      localStorage.setItem('md_s',JSON.stringify(stats));updateStats();
+    }else{
+      // Fallback to heuristic
+      displayResults(heuristic,text);
+      stats.t++;if(heuristic.ai_probability>=60)stats.a++;else if(heuristic.ai_probability<=40)stats.h++;
+      localStorage.setItem('md_s',JSON.stringify(stats));updateStats();
+    }
+  }catch(e){
+    // Timeout or error - show heuristic
+    displayResults(heuristic,text);
+    stats.t++;if(heuristic.ai_probability>=60)stats.a++;else if(heuristic.ai_probability<=40)stats.h++;
+    localStorage.setItem('md_s',JSON.stringify(stats));updateStats();
+    if(e.name==='AbortError'){
+      document.getElementById('reasoningText').textContent+='\n\n⚠️ AI verification timed out (45s). Showing heuristic result.';
+    }
+  }
+  btn.classList.remove('loading');btn.disabled=false;btn.textContent='🧠 AI Verify';
+}
+
+function saveToHistory(text,score,verdict){
+  history.unshift({text:text.substring(0,100),ai_probability:score,verdict,time:Date.now()});
+  if(history.length>20)history.pop();
+  localStorage.setItem('md_h',JSON.stringify(history));renderHistory();
+}
+
+function renderHistory(){
+  const section=document.getElementById('historySection');
+  const list=document.getElementById('historyList');
+  if(!history.length){section.style.display='none';return}
+  section.style.display='block';list.innerHTML='';
+  history.forEach(h=>{
+    const bg=h.ai_probability>=60?'ai-bg':h.ai_probability<=40?'human-bg':'mixed-bg';
+    const item=document.createElement('div');item.className='history-item';
+    item.innerHTML=`<div class="history-score ${bg}">${h.ai_probability}%</div><div class="history-text"><div class="preview">${escapeHtml(h.text)}...</div><div class="time">${timeAgo(h.time)} · ${h.verdict}</div></div>`;
     list.appendChild(item);
   });
 }
 
-function getTimeAgo(ts) {
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return mins + 'm ago';
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return hrs + 'h ago';
-  return Math.floor(hrs / 24) + 'd ago';
+function updateStats(){
+  document.getElementById('totalChecks').textContent=stats.t;
+  document.getElementById('aiDetected').textContent=stats.a;
+  document.getElementById('humanDetected').textContent=stats.h;
 }
 
-function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function loadSample(t){document.getElementById('textInput').value=samples[t];updateCounts()}
+function toggleTheme(){const h=document.documentElement;const c=h.getAttribute('data-theme');const n=c==='dark'?'light':'dark';h.setAttribute('data-theme',n);localStorage.setItem('md_t',n)}
+function updateCounts(){const t=document.getElementById('textInput').value;document.getElementById('charCount').textContent=t.length;document.getElementById('wordCount').textContent=t.trim()?t.trim().split(/\s+/).length:0}
+function timeAgo(ts){const d=Date.now()-ts;const m=Math.floor(d/60000);if(m<1)return'Just now';if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago'}
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
-init();
+// Init
+updateStats();renderHistory();
+const saved=localStorage.getItem('md_t');if(saved)document.documentElement.setAttribute('data-theme',saved);
+document.getElementById('textInput').addEventListener('input',updateCounts);
 </script>
 </body>
 </html>
